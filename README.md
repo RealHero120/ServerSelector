@@ -50,3 +50,53 @@ velocity-plugin/build/libs/ServerSelector-Velocity.jar
 3. **Restart** the Velocity proxy first, then restart the lobby server.
 
 That's it — no configuration files are needed.
+
+## Security
+
+### Velocity Modern Forwarding (required)
+
+Because Velocity runs in **online mode** while the backend servers run in **offline mode**, you
+**must** enable Velocity Modern Forwarding so backends can verify that every connecting player was
+authenticated by Mojang through the proxy. Without this, a player could bypass the proxy and
+connect directly to a backend server using any username/UUID.
+
+**Step 1 – `velocity.toml` (proxy)**
+
+```toml
+player-info-forwarding-mode = "MODERN"
+```
+
+**Step 2 – `config/paper-global.yml` (each backend server)**
+
+```yaml
+proxies:
+  velocity:
+    enabled: true
+    online-mode: true
+    secret: "YOUR_FORWARDING_SECRET"
+```
+
+Generate a strong random secret (e.g. `openssl rand -hex 32`) and use the **same value** in
+every backend server's config and in `forwarding.secret` inside the Velocity proxy directory.
+
+### Firewall / network binding
+
+Backend servers must **not** be reachable directly from the internet.  Bind each backend to
+`127.0.0.1` (or an internal LAN address) in its `server.properties`:
+
+```properties
+server-ip=127.0.0.1
+```
+
+Only the Velocity proxy port (default `25565`) should be exposed publicly.
+
+### What this plugin does on top
+
+* **Ban check (Paper side)** – the compass GUI cannot be opened and no transfer message is sent
+  if the player is currently banned on the lobby server.
+* **Online-mode guard (Velocity side)** – the proxy rejects any transfer request that arrives
+  from a connection that was not authenticated in online mode (i.e. not verified by Mojang),
+  and logs a warning with the player's UUID for auditing.
+* **Transfer audit log (Velocity side)** – every successful server transfer is logged with the
+  player's username **and UUID** so you have a clear, tamper-evident record.
+

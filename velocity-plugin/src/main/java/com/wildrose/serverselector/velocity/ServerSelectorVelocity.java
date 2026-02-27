@@ -50,8 +50,20 @@ public class ServerSelectorVelocity {
         String serverName = in.readUTF();
 
         Player player = connection.getPlayer();
+
+        if (!player.isOnlineMode()) {
+            logger.warn("ServerSelector: rejecting transfer request from non-online-mode player {} ({})",
+                    player.getUsername(), player.getUniqueId());
+            return;
+        }
+
         server.getServer(serverName).ifPresentOrElse(
-                registeredServer -> player.createConnectionRequest(registeredServer).fireAndForget(),
-                () -> logger.warn("ServerSelector: unknown server '{}' requested by {}", serverName, player.getUsername()));
+                registeredServer -> {
+                    logger.info("ServerSelector: transferring {} ({}) to '{}'",
+                            player.getUsername(), player.getUniqueId(), serverName);
+                    player.createConnectionRequest(registeredServer).fireAndForget();
+                },
+                () -> logger.warn("ServerSelector: unknown server '{}' requested by {} ({})",
+                        serverName, player.getUsername(), player.getUniqueId()));
     }
 }

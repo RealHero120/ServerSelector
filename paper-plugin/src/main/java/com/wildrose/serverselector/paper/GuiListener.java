@@ -28,7 +28,9 @@ public class GuiListener implements Listener {
         if (!event.getAction().isRightClick()) return;
 
         event.setCancelled(true);
-        openSelector((Player) event.getPlayer());
+        Player player = (Player) event.getPlayer();
+        if (isBanned(player)) return;
+        openSelector(player);
     }
 
     private void openSelector(Player player) {
@@ -47,6 +49,19 @@ public class GuiListener implements Listener {
         return item;
     }
 
+    /**
+     * Returns true and notifies the player if they are banned on this server.
+     * Note: this checks the vanilla ban list only. If a network-wide ban plugin
+     * (e.g. LiteBans) is in use, those bans are enforced separately at the proxy.
+     */
+    private static boolean isBanned(Player player) {
+        if (player.isBanned()) {
+            player.sendMessage("§cYou are banned and cannot use the server selector.");
+            return true;
+        }
+        return false;
+    }
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -55,6 +70,8 @@ public class GuiListener implements Listener {
 
         event.setCancelled(true);
         player.closeInventory();
+
+        if (isBanned(player)) return;
 
         String server = switch (event.getSlot()) {
             case 2 -> "smp";
