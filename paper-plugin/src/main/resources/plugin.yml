@@ -1,0 +1,5 @@
+name: ServerSelector
+version: '1.0.0'
+main: com.wildrose.serverselector.paper.ServerSelectorPlugin
+api-version: '1.21'
+description: Server selector compass for Wild Rose MC lobby

@@ -1,0 +1,2 @@
+rootProject.name = 'ServerSelector'
+include 'paper-plugin', 'velocity-plugin'
